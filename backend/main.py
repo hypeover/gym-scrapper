@@ -20,11 +20,16 @@ def extract_city(address):
         return match.group(1).strip()
     return None
 
-def get_cf_data():
+def get_data():
 
     cf_data = []
     cf_all_cities = requests.get('https://cityfit.pl/nasze-kluby/')
     cf_all_cities_doc = BeautifulSoup(cf_all_cities.text, 'html.parser')
+    zf_all_cities = requests.get('https://zdrofit.pl/kluby-fitness')
+    zf_all_cities_doc = BeautifulSoup(zf_all_cities.text, 'html.parser')
+    zf_links = []
+    zf_data = []
+
     for city in cf_all_cities_doc.select('div.our-clubs__item'):
         cf_data.append({
             'address': city['data-address'],
@@ -34,16 +39,6 @@ def get_cf_data():
             'gym': 'CityFit',
             'city': extract_city(city['data-address'])
         })
-    return cf_data
-
-cf_data = get_cf_data()
-
-def get_zf_data():
-
-    zf_all_cities = requests.get('https://zdrofit.pl/kluby-fitness')
-    zf_all_cities_doc = BeautifulSoup(zf_all_cities.text, 'html.parser')
-    zf_links = []
-    zf_data = []
 
     for city in zf_all_cities_doc.select('section ul li div'):
         if city.find('small', string='Wkrótce otwarcie') or city.find('small', string='Wkrótce otwarcie / karnety "plus"') or city.find('small', string='Klub tymczasowo zamknięty"'):
@@ -79,11 +74,11 @@ def get_zf_data():
             'city': city.replace("_", " ")
         })
 
-    return zf_data
+    data = pd.DataFrame(cf_data + zf_data)
 
-zf_data = get_zf_data()
+    return data
 
-data = pd.DataFrame(cf_data + zf_data)
+data = get_data()
 data = data.to_dict(orient='records')
 
 @app.get("/data")

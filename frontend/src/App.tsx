@@ -12,14 +12,16 @@ const App = () => {
   const [cities, setCities] = useState([])
 
   useEffect(() => {
-  fetch("http://127.0.0.1:8000/data")
+  fetch("https://gym-scrapper.onrender.com/data")
     .then(res => res.json())
-    .then(data => setData(data));
+    .then(data => setData(data))
+    .catch(err => console.log(err));
 }, []);
 
   const uniqueCities = [...new Set(data.map((item) => item.city))];
 
-  
+
+  console.log(cities)
 
   return (
     <ThemeProvider>
